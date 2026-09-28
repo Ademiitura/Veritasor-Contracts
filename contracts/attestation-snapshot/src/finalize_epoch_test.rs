@@ -26,9 +26,7 @@
 
 extern crate std;
 
-use crate::{
-    AttestationSnapshotContract, AttestationSnapshotContractClient, MAX_PERIOD_BYTES,
-};
+use crate::{AttestationSnapshotContract, AttestationSnapshotContractClient, MAX_PERIOD_BYTES};
 use soroban_sdk::testutils::{Address as _, Ledger as _};
 use soroban_sdk::{Address, Env, String};
 
@@ -169,17 +167,17 @@ fn record_after_finalization_is_rejected_per_epoch() {
     client.finalize_epoch(&admin, &finalized);
 
     // Writes to the finalized epoch are rejected and do not overwrite the record...
-    let blocked = client.try_record_snapshot(
-        &admin,
-        &business,
-        &finalized,
-        &999_999i128,
-        &9u32,
-        &9u64,
+    let blocked =
+        client.try_record_snapshot(&admin, &business, &finalized, &999_999i128, &9u32, &9u64);
+    assert!(
+        blocked.is_err(),
+        "write to finalized epoch must be rejected"
     );
-    assert!(blocked.is_err(), "write to finalized epoch must be rejected");
     assert_eq!(
-        client.get_snapshot(&business, &finalized).unwrap().trailing_revenue,
+        client
+            .get_snapshot(&business, &finalized)
+            .unwrap()
+            .trailing_revenue,
         1_000i128
     );
 
