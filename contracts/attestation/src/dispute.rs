@@ -925,6 +925,81 @@ mod test {
     use soroban_sdk::{Address, Env, String};
 
     #[test]
+    fn test_validate_dispute_closure_valid() {
+        let env = Env::default();
+        let dispute_id = 1;
+        let dispute = Dispute {
+            id: dispute_id,
+            challenger: Address::generate(&env),
+            business: Address::generate(&env),
+            attestor: Address::generate(&env),
+            period: String::from_str(&env, "2026-02"),
+            status: DisputeStatus::Resolved,
+            dispute_type: DisputeType::Other,
+            evidence: String::from_str(&env, "evidence"),
+            timestamp: 1000,
+            resolution: OptionalResolution::None,
+        };
+        store_dispute(&env, &dispute);
+
+        let result = validate_dispute_closure(&env, dispute_id);
+        assert_eq!(result, Ok(dispute));
+    }
+
+    #[test]
+    fn test_validate_dispute_closure_not_found() {
+        let env = Env::default();
+        let dispute_id = 999;
+        
+        let result = validate_dispute_closure(&env, dispute_id);
+        assert_eq!(result, Err("dispute not found"));
+    }
+
+    #[test]
+    fn test_validate_dispute_closure_invalid_status_open() {
+        let env = Env::default();
+        let dispute_id = 2;
+        let dispute = Dispute {
+            id: dispute_id,
+            challenger: Address::generate(&env),
+            business: Address::generate(&env),
+            attestor: Address::generate(&env),
+            period: String::from_str(&env, "2026-02"),
+            status: DisputeStatus::Open,
+            dispute_type: DisputeType::Other,
+            evidence: String::from_str(&env, "evidence"),
+            timestamp: 1000,
+            resolution: OptionalResolution::None,
+        };
+        store_dispute(&env, &dispute);
+
+        let result = validate_dispute_closure(&env, dispute_id);
+        assert_eq!(result, Err("dispute is not resolved"));
+    }
+
+    #[test]
+    fn test_validate_dispute_closure_invalid_status_closed() {
+        let env = Env::default();
+        let dispute_id = 3;
+        let dispute = Dispute {
+            id: dispute_id,
+            challenger: Address::generate(&env),
+            business: Address::generate(&env),
+            attestor: Address::generate(&env),
+            period: String::from_str(&env, "2026-02"),
+            status: DisputeStatus::Closed,
+            dispute_type: DisputeType::Other,
+            evidence: String::from_str(&env, "evidence"),
+            timestamp: 1000,
+            resolution: OptionalResolution::None,
+        };
+        store_dispute(&env, &dispute);
+
+        let result = validate_dispute_closure(&env, dispute_id);
+        assert_eq!(result, Err("dispute is not resolved"));
+    }
+
+    #[test]
     fn test_store_attestor_for_attestation_valid() {
         let env = Env::default();
         let business = Address::generate(&env);
